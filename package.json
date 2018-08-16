@@ -1,0 +1,30 @@
+{
+  "name": "chess-positions-queue-processor",
+  "version": "0.1.0",
+  "description": "Process queue of chess positions which needs to be analyzed",
+  "main": "processor.js",
+  "scripts": {
+    "test": "jasmine"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Scorpibear/chess-positions-queue-processor.git"
+  },
+  "keywords": [
+    "chess",
+    "fen",
+    "analysis",
+    "queue",
+    "processor",
+    "positions"
+  ],
+  "author": "Mikhail Subach",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Scorpibear/chess-positions-queue-processor/issues"
+  },
+  "homepage": "https://github.com/Scorpibear/chess-positions-queue-processor#readme",
+  "devDependencies": {
+    "eslint": "^5.3.0"
+  }
+}
