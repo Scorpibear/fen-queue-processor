@@ -4,7 +4,10 @@
   "description": "Process queue of chess positions which needs to be analyzed",
   "main": "processor.js",
   "scripts": {
-    "test": "jasmine"
+    "test": "jasmine",
+    "tdd": "nodemon --exec jasmine",
+    "coverage": "istanbul cover node_modules/jasmine/bin/jasmine.js",
+    "e2e": "jasmine ./spec/e2e.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +28,8 @@
   },
   "homepage": "https://github.com/Scorpibear/chess-positions-queue-processor#readme",
   "devDependencies": {
-    "eslint": "^5.3.0"
+    "eslint": "^5.3.0",
+    "istanbul": "^0.4.5",
+    "nodemon": "^1.18.3"
   }
 }
