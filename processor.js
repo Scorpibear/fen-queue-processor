@@ -3,7 +3,7 @@ class QueueProcessor {
     this.queue = queue;
     this.evaluation = evaluation;
     this.evaluationSources = evaluationSources;
-    if(!this.evaluationSources.every(source => source.hasOwnProperty('getFen'))) {
+    if(!this.evaluationSources.every(source => 'getFen' in source)) {
       throw 'evaluation sources should have getFen function';
     }
     this.analyzer = analyzer;

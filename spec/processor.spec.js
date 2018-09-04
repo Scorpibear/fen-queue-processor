@@ -23,6 +23,11 @@ describe('processor', () => {
     }).toThrow('evaluation sources should have getFen function');
   });
 
+  it('go smoothly if getFen function is defined in evaluation sources', () => {
+    expect(new Processor({queue, evaluation, analyzer,
+      evaluationSources: [evaluationSource1], strategy})).toBeDefined();
+  });
+
   describe('process', () => {
     it('works asynchronous', () => {
       expect(processor.process()).toEqual(jasmine.any(Promise));
