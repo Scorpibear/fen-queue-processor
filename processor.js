@@ -1,41 +1,57 @@
 class QueueProcessor {
-  constructor({queue, evaluation, evaluationSources, analyzer}) {
+  constructor({queue, evaluation, evaluationSources, analyzer, strategy}) {
     this.queue = queue;
     this.evaluation = evaluation;
     this.evaluationSources = evaluationSources;
+    if(!this.evaluationSources.every(source => source.hasOwnProperty('getFen'))) {
+      throw 'evaluation sources should have getFen function';
+    }
     this.analyzer = analyzer;
+    this.strategy = strategy;
     this.Console = console;
+    this.processPromise = Promise.resolve();
   }
   process() {
-    return new Promise(resolve => {
-      this.processSync();
-      resolve();
+    const newPromise = new Promise(resolve => {
+      this.processPromise.then(() => {
+        this.processSync();
+        resolve();
+      }, err => {
+        this.Console.error(err);
+      });
     }, err => {
       this.Console.error(err);
     });
+    this.processPromise = newPromise;
+    return newPromise;
+  }
+  processItem(item) {
+    if(this.strategy && !this.strategy.isInteresting(item.moves)) {
+      this.queue.delete(item.fen);
+      return;
+    }
+    let i = 0;
+    let result = undefined;
+    while(i < this.evaluationSources.length && !result) {
+      result = this.evaluationSources[i].getFen(item);
+      i++;
+    }
+    if(result) {
+      this.registerEvaluation(result);
+    } else {
+      this.analyzer.analyze(item);
+    }
   }
   processSync() {
     const items = this.queue.getAllItems();
-    items.forEach(item => {
-      let i = 0;
-      let result = undefined;
-      while(i < this.evaluationSources.length && !result) {
-        result = this.evaluationSources[i].getFen(item.fen);
-        i++;
-      }
-      if(result) {
-        this.registerEvaluation(result);
-      } else {
-        this.analyzer.analyze(item);
-      }
-    });
+    items.forEach(item => this.processItem(item));
   }
   registerEvaluation({fen, bestMove, depth, score}) {
-    const item = this.queue.getItem(fen);
+    const item = this.queue.get({fen, depth});
     // make sense to delete item and register evaluation only if depth is enough
     if(depth >= item.depth) {
       this.evaluation.save({moves: item.moves, bestMove, depth, score});
-      this.queue.deleteItem(fen);
+      this.queue.delete(fen);
     }
   }
 }
