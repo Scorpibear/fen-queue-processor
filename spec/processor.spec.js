@@ -38,10 +38,7 @@ describe('processor', () => {
         expect(processor.processSync).toHaveBeenCalledTimes(1);
         done();
       });
-      processor.process().catch(err => {
-        done();
-        throw err;
-      });
+      processor.process();
     });
     it('runs eventually the required number of times', done => {
       spyOn(processor, 'processSync');
@@ -53,9 +50,16 @@ describe('processor', () => {
         expect(processor.processSync).toHaveBeenCalledTimes(3);
         done();
       }).catch(err => {
-        done();
-        throw err;
+        done(err);
       });
+    });
+    it('logs error if processSync throws an error', async () => {
+      const stubConsole = {error: () => {}};
+      processor.Console = stubConsole;
+      spyOn(stubConsole, 'error').and.stub();
+      spyOn(processor, 'processSync').and.throwError('unexpected failure');
+      await processor.process();
+      expect(stubConsole.error).toHaveBeenCalled();
     });
   });
 

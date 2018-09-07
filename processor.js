@@ -12,18 +12,10 @@ class QueueProcessor {
     this.processPromise = Promise.resolve();
   }
   process() {
-    const newPromise = new Promise(resolve => {
-      this.processPromise.then(() => {
-        this.processSync();
-        resolve();
-      }, err => {
-        this.Console.error(err);
-      });
-    }, err => {
-      this.Console.error(err);
-    });
-    this.processPromise = newPromise;
-    return newPromise;
+    this.processPromise = this.processPromise.then(() => {
+      this.processSync();
+    }, err => this.Console.error(err)).catch(err => this.Console.error(err));
+    return this.processPromise;
   }
   processItem(item) {
     if(this.strategy && !this.strategy.isInteresting(item.moves)) {
