@@ -15,7 +15,13 @@ describe('processor', () => {
   const evaluationSource2 = {getFen: ()=>{}};
   const evaluationSources = [evaluationSource1, evaluationSource2];
   const strategy = {isInteresting: () => true};
-  const processor = new Processor({queue, evaluation, analyzer, evaluationSources, strategy});
+  const stubConsole = {error: () => {}, log: () => {}};
+  let processor;
+
+  beforeEach(() => {
+    processor = new Processor({queue, evaluation, analyzer, evaluationSources, strategy});
+    processor.Console = stubConsole;
+  });
 
   it('rejects evaluationSources without getFen function', () => {
     expect(()=>{ 
@@ -54,8 +60,6 @@ describe('processor', () => {
       });
     });
     it('logs error if processSync throws an error', async () => {
-      const stubConsole = {error: () => {}};
-      processor.Console = stubConsole;
       spyOn(stubConsole, 'error').and.stub();
       spyOn(processor, 'processSync').and.throwError('unexpected failure');
       await processor.process();
@@ -64,44 +68,52 @@ describe('processor', () => {
   });
 
   describe('processItem', () => {
-    it('uses analyzer if no immediate answer in evaluation sources', () => {
+    it('uses analyzer if no immediate answer in evaluation sources', async () => {
       spyOn(analyzer, 'analyze').and.stub();
-      processor.processItem(item);
+      await processor.processItem(item);
       expect(analyzer.analyze).toHaveBeenCalledWith(item);
     });
-    it('get fen from the first evaluation source', () => {
+    it('get fen from the first evaluation source', async () => {
       spyOn(evaluationSource1, 'getFen').and.returnValue({fen, bestMove, score, depth});
-      processor.processItem(item);
+      await processor.processItem(item);
       expect(evaluationSource1.getFen).toHaveBeenCalledWith(item);
     });
-    it('does not touch the next evaluation source if there is answer in the previous', () => {
+    it('register evaluation for result from the first available source', async () => {
       spyOn(evaluationSource1, 'getFen').and.returnValue({fen, bestMove, score, depth});
       spyOn(evaluationSource2, 'getFen').and.stub();
-      processor.processSync(item);
-      expect(evaluationSource2.getFen).not.toHaveBeenCalled();
-    });
-    it('analyzer is not called if evaluation sources has an answer', () => {
-      spyOn(evaluationSource2, 'getFen').and.returnValue({fen, bestMove, score, depth});
-      spyOn(analyzer, 'analyze').and.stub();
-      processor.processItem(item);
-      expect(analyzer.analyze).not.toHaveBeenCalled();
-    });
-    it('registers evaluation if there is answer in evaluation sources', () => {
-      spyOn(evaluationSource1, 'getFen').and.returnValue({fen, bestMove, score, depth});
-      spyOn(processor, 'registerEvaluation').and.stub();
-      processor.processItem(item);
+      spyOn(processor, 'registerEvaluation');
+      await processor.processItem(item);
       expect(processor.registerEvaluation).toHaveBeenCalledWith({fen, bestMove, score, depth});
     });
-    it('do not bother evaluation sources if position is not interesting for analysis', () => {
+    it('consider an answer is available only if bestMove has been provided', async () => {
+      spyOn(evaluationSource1, 'getFen').and.returnValue({fen, score, depth});
+      spyOn(evaluationSource2, 'getFen').and.returnValue({fen: 'bbb', bestMove, score: 0.02, depth: 20});
+      spyOn(processor, 'registerEvaluation');
+      await processor.processItem(item);
+      expect(processor.registerEvaluation).toHaveBeenCalledWith({fen: 'bbb', bestMove, score: 0.02, depth: 20});
+    });
+    it('analyzer is not called if evaluation sources has an answer', async () => {
+      spyOn(evaluationSource2, 'getFen').and.returnValue({fen, bestMove, score, depth});
+      spyOn(analyzer, 'analyze').and.stub();
+      await processor.processItem(item);
+      expect(analyzer.analyze).not.toHaveBeenCalled();
+    });
+    it('registers evaluation if there is answer in evaluation sources', async () => {
+      spyOn(evaluationSource1, 'getFen').and.returnValue({fen, bestMove, score, depth});
+      spyOn(processor, 'registerEvaluation').and.stub();
+      await processor.processItem(item);
+      expect(processor.registerEvaluation).toHaveBeenCalledWith({fen, bestMove, score, depth});
+    });
+    it('do not bother evaluation sources if position is not interesting for analysis', async () => {
       spyOn(evaluationSource1, 'getFen');
       spyOn(strategy, 'isInteresting').and.returnValue(false);
-      processor.processItem({moves: ['h4', 'h5'], fen, depth});
+      await processor.processItem({moves: ['h4', 'h5'], fen, depth});
       expect(evaluationSource1.getFen).not.toHaveBeenCalled();
     });
-    it('deletes item from queue if it is not interesting for analysis', () => {
+    it('deletes item from queue if it is not interesting for analysis', async () => {
       spyOn(strategy, 'isInteresting').and.returnValue(false);
       spyOn(queue, 'delete').and.stub();
-      processor.processItem(item);
+      await processor.processItem(item);
       expect(queue.delete).toHaveBeenCalledWith(fen);
     });
   });

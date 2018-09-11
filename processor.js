@@ -17,33 +17,38 @@ class QueueProcessor {
     }, err => this.Console.error(err)).catch(err => this.Console.error(err));
     return this.processPromise;
   }
-  processItem(item) {
+  async processItem(item) {
     if(this.strategy && !this.strategy.isInteresting(item.moves)) {
       this.queue.delete(item.fen);
       return;
     }
-    let i = 0;
-    let result = undefined;
-    while(i < this.evaluationSources.length && !result) {
-      result = this.evaluationSources[i].getFen(item);
-      i++;
+    let allPromisedResults = this.evaluationSources.map(source => source.getFen(item));
+    const values = await Promise.all(allPromisedResults);
+    for(let i = 0; i < values.length; i++) {
+      if(values[i] && values[i].bestMove) {
+        this.registerEvaluation(values[i]);
+        return;
+      }
     }
-    if(result) {
-      this.registerEvaluation(result);
-    } else {
-      this.analyzer.analyze(item);
-    }
+    this.analyzer.analyze(item);
   }
   processSync() {
     const items = this.queue.getAllItems();
     items.forEach(item => this.processItem(item));
   }
   registerEvaluation({fen, bestMove, depth, score}) {
+    this.Console.log('Processor.RegisterEvaluation was called with: ', {fen, bestMove, depth, score});
     const item = this.queue.get({fen, depth});
-    // make sense to delete item and register evaluation only if depth is enough
-    if(depth >= item.depth) {
-      this.evaluation.save({moves: item.moves, bestMove, depth, score});
-      this.queue.delete(fen);
+    if(item) {
+      // make sense to delete item and register evaluation only if depth is enough
+      if(depth >= item.depth) {
+        this.evaluation.save({moves: item.moves, bestMove, depth, score});
+        this.queue.delete(fen);
+      } else {
+        this.Console.error(`Could not register evaluation because the item with fen '${fen}' has greater depth in queue than was provided`);  
+      }
+    } else {
+      this.Console.error(`Could not register evaluation because the item with fen '${fen}' was not found in queue`);
     }
   }
 }
