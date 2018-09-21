@@ -1,5 +1,6 @@
+const Processor = require('../processor');
+
 describe('processor', () => {
-  const Processor = require('../processor');
   const fen = 'pnK...';
   const moves = ['d3','d5'];
   const depth = 40;
@@ -110,11 +111,31 @@ describe('processor', () => {
       await processor.processItem({moves: ['h4', 'h5'], fen, depth});
       expect(evaluationSource1.getFen).not.toHaveBeenCalled();
     });
+    it('do not bother evaluation sources if position interest is undefined yet', async () => {
+      spyOn(evaluationSource1, 'getFen');
+      spyOn(strategy, 'isInteresting').and.returnValue(undefined);
+      await processor.processItem({moves: ['h4', 'h5'], fen, depth});
+      expect(evaluationSource1.getFen).not.toHaveBeenCalled();
+    });
     it('deletes item from queue if it is not interesting for analysis', async () => {
       spyOn(strategy, 'isInteresting').and.returnValue(false);
       spyOn(queue, 'delete').and.stub();
       await processor.processItem(item);
       expect(queue.delete).toHaveBeenCalledWith(fen);
+    });
+    it('leaves item in queue if isInteresting is undefined yet', async () => {
+      spyOn(strategy, 'isInteresting').and.returnValue(undefined);
+      spyOn(queue, 'delete').and.stub();
+      await processor.processItem(item);
+      expect(queue.delete).not.toHaveBeenCalledWith(fen);
+    });
+    it('process item if strategy is not defined', async () => {
+      let processor = new Processor({ queue, evaluation, evaluationSources, analyzer });
+      spyOn(analyzer, 'analyze').and.stub();
+
+      await processor.processItem(item);
+
+      expect(analyzer.analyze).toHaveBeenCalled();
     });
   });
 
@@ -154,6 +175,14 @@ describe('processor', () => {
       spyOn(queue, 'delete');
       processor.registerEvaluation({fen, depth, score, bestMove});
       expect(queue.delete).not.toHaveBeenCalled();
+    });
+    it('logs error if fen was not in queue', () => {
+      spyOn(processor.Console, 'error').and.stub();
+      spyOn(queue, 'get').and.returnValue(null);
+
+      processor.registerEvaluation({ fen: 'unknown '});
+
+      expect(processor.Console.error).toHaveBeenCalled();
     });
   });
 });
