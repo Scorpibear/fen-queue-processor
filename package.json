@@ -1,6 +1,6 @@
 {
-  "name": "chess-positions-queue-processor",
-  "version": "0.3.0",
+  "name": "fen-queue-processor",
+  "version": "0.4.0",
   "description": "Process queue of chess positions which needs to be analyzed",
   "main": "processor.js",
   "scripts": {
