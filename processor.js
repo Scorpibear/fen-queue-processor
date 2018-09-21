@@ -14,13 +14,21 @@ class QueueProcessor {
   process() {
     this.processPromise = this.processPromise.then(() => {
       this.processSync();
-    }, err => this.Console.error(err)).catch(err => this.Console.error(err));
+    }).catch(err => this.Console.error(err));
     return this.processPromise;
   }
   async processItem(item) {
-    if(this.strategy && !this.strategy.isInteresting(item.moves)) {
-      this.queue.delete(item.fen);
-      return;
+    if(this.strategy) {
+      switch(this.strategy.isInteresting(item.moves)) {
+      case true:
+        break;
+      case false:
+        this.queue.delete(item.fen);
+        return;
+      case undefined:
+      default:
+        return;
+      }
     }
     let allPromisedResults = this.evaluationSources.map(source => source.getFen(item));
     const values = await Promise.all(allPromisedResults);
