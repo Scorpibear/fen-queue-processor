@@ -1,7 +1,7 @@
 {
   "name": "fen-queue-processor",
   "version": "0.4.0",
-  "description": "Process queue of chess positions which needs to be analyzed",
+  "description": "Process and analyzes queue of chess positions in FEN format",
   "main": "processor.js",
   "scripts": {
     "test": "jasmine",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Scorpibear/chess-positions-queue-processor.git"
+    "url": "git+https://github.com/Scorpibear/fen-queue-processor.git"
   },
   "keywords": [
     "chess",
@@ -26,9 +26,9 @@
   "author": "Mikhail Subach",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Scorpibear/chess-positions-queue-processor/issues"
+    "url": "https://github.com/Scorpibear/fen-queue-processor/issues"
   },
-  "homepage": "https://github.com/Scorpibear/chess-positions-queue-processor#readme",
+  "homepage": "https://github.com/Scorpibear/fen-queue-processor#readme",
   "devDependencies": {
     "eslint": "^5.5.0",
     "jasmine": "^3.2.0",
