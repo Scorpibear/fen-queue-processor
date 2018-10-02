@@ -45,7 +45,7 @@ class QueueProcessor {
     items.forEach(item => this.processItem(item));
   }
   registerEvaluation({fen, bestMove, depth, score}) {
-    this.Console.log('Processor.RegisterEvaluation was called with: ', {fen, bestMove, depth, score});
+    this.Console.log(`register evaluation: '${fen}' ${score} ${bestMove} ${depth}`);
     const item = this.queue.get({fen, depth});
     if(item) {
       // make sense to delete item and register evaluation only if depth is enough
