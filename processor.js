@@ -46,7 +46,7 @@ class QueueProcessor {
   }
   registerEvaluation({fen, bestMove, depth, score}) {
     this.Console.log(`register evaluation: '${fen}' ${score} ${bestMove} ${depth}`);
-    const item = this.queue.get({fen, depth});
+    const item = this.queue.get({fen}); // queue can have lower depth that we have
     if(item) {
       // make sense to delete item and register evaluation only if depth is enough
       if(depth >= item.depth) {

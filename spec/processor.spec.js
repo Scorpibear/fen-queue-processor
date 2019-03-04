@@ -7,7 +7,9 @@ describe('processor', () => {
   const item = {fen, depth, moves};
   const score = -0.24;
   const bestMove = 'd4';
-  const queue = {delete: () => {}, get: ({fen, depth, moves}) => ({fen, depth, moves}),
+  const queue = {
+    delete: () => {},
+    get: ({fen, depth, moves}) => (item),
     getAllItems: () => ([])
   };
   const evaluation = {save: () => {}};
@@ -152,7 +154,7 @@ describe('processor', () => {
     it('gets evaluation item from queue', () => {
       spyOn(queue, 'get').and.returnValue(item);
       processor.registerEvaluation({fen, bestMove, depth, score});
-      expect(queue.get).toHaveBeenCalledWith({fen, depth});
+      expect(queue.get).toHaveBeenCalledWith({fen});
     });
     it('delete item if depth match with item in queue', () => {
       spyOn(queue, 'delete');
